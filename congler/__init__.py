@@ -134,8 +134,11 @@ def list_filtered() -> None:
     if args.verbose:
         pprint(svcs)
     else:
-        for svc in svcs:
-            print(svc['ServiceName'])
+        svc_names = [x['ServiceName'] for x in svcs]
+        if args.unique:
+            svc_names = sorted(list(set(svc_names)))
+        for svc in svc_names:
+            print(svc)
 
 
 def del_filtered() -> None:
@@ -239,8 +242,14 @@ def run(argv):
                      help="Add service filter (-f FIELD=VALUE). "
                           "VALUE can be a regex.",
                      action="append")
+    sub.add_argument("-u", "--unique",
+                     help="Output all services only once when NOT using -v. "
+                          "Ignored with -v set.",
+                     default=False,
+                     action="store_true")
     sub.add_argument("-v", "--verbose",
                      help="Output all service details, not only service name",
+                     default=False,
                      action="store_true")
 
     sub = subs.add_parser('del-filtered',
