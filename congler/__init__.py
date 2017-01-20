@@ -134,12 +134,18 @@ def del_filtered():
 
 def list_services():
     svcs = _get_all_service_names()
+    if args.filter:
+        fltr = re.compile(args.filter)
+        svcs = filter(lambda x: fltr.search(x), svcs)
     for svc in sorted(svcs):
         print(svc)
 
 
 def list_tags():
     tags = _get_all_service_tags()
+    if args.filter:
+        fltr = re.compile(args.filter)
+        tags = filter(lambda x: fltr.search(x), tags)
     for tag in sorted(tags):
         print(tag)
 
@@ -168,11 +174,22 @@ def run(argv):
     subs.required = True
 
     # no parameters, we don't need to assign them to variables
-    subs.add_parser('list-services',
+    sub = subs.add_parser('list-services',
                     help="List all service names. Use 'list-filtered' to "
                          "get full service information.")
-    subs.add_parser('list-tags',
+    sub.add_argument('filter',
+                     nargs="?",
+                     default=None,
+                     help="Optional RegEx which is used to filter the result "
+                          "list using regex.search (not match).")
+
+    sub = subs.add_parser('list-tags',
                     help="List all tags used in all services.")
+    sub.add_argument('filter',
+                     nargs="?",
+                     default=None,
+                     help="Optional RegEx which is used to filter the result "
+                          "list using regex.search (not match).")
 
     # now we do.
     sub = subs.add_parser('service-info',
