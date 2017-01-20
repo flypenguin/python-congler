@@ -1,6 +1,22 @@
 CHANGELOG
 =========
 
+0.4.0
+-----
+
+Date: 2017-01-20
+
+- FEATURE: *-filtered can now also filter by top level lists (i.e. tags). See github page for example.
+
+
+0.3.0
+-----
+
+Date: 2017-01-20
+
+- FEATURE: simple output filter for list-services and list-tags
+
+
 0.2.1
 -----
 
