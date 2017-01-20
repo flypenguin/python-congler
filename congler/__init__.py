@@ -10,7 +10,7 @@ from pprint import pprint
 from argparse import ArgumentParser
 
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 args = None
 consul_inst_cache = {}
