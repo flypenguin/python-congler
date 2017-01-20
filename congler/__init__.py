@@ -85,7 +85,19 @@ def _unregister(svc) -> bool:
 def _get_filtered_services() -> [dict]:
     def match(svc):
         for fname, fex in filter_dict.items():
-            if fname not in svc or not fex.search(svc[fname]):
+            if fname in svc:
+                val = svc[fname]
+                type_val = type(val)
+                if type_val is str:
+                    if not fex.search(svc[fname]):
+                        return False
+                elif type_val in (list, tuple):
+                    matches = 0
+                    for _tmp in val:
+                        matches = 1 if fex.search(_tmp) else matches
+                    if matches == 0:
+                        return False
+            else:
                 return False
         return True
     filter_dict = {}
@@ -217,9 +229,13 @@ def run(argv):
 
     sub = subs.add_parser('list-filtered',
                           help="List services based on filter criteria. "
-                               "Currently you cannot filter for nested fields "
-                               "(e.g. ServiceTags, etc.).")
+                               "Currently you cannot filter for nested dicts, "
+                               "but you can filter for top-level arrays. In "
+                               "that case the regex is matched against every "
+                               "item of the array, and if one matches the "
+                               "filter matches.")
     sub.add_argument("-f", "--filter",
+                     default=[],
                      help="Add service filter (-f FIELD=VALUE). "
                           "VALUE can be a regex.",
                      action="append")
@@ -234,6 +250,7 @@ def run(argv):
                                "prevent accidently deleting all services.")
     sub.add_argument("-f", "--filter",
                      required=True,
+                     default=[],
                      help="Add service filter (-f FIELD=VALUE). "
                           "VALUE can be a regex.",
                      action="append")
