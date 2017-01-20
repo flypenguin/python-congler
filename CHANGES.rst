@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+0.5.0
+-----
+
+Date: 2017-01-20
+
+- FEATURE: list-filtered now has a -u switch to remove dupliate service names when not using -v
+
+
 0.4.0
 -----
 
