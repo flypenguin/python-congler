@@ -16,7 +16,7 @@ args = None
 consul_inst_cache = {}
 
 
-def _get_consul_for_url(consul_url):
+def _get_consul_for_url(consul_url) -> consul.Consul:
     if consul_url not in consul_inst_cache:
         parsed_url = urllib.parse.urlparse(consul_url)
         if ":" in parsed_url.netloc:  # port specified?
@@ -31,19 +31,19 @@ def _get_consul_for_url(consul_url):
     return consul_inst_cache[consul_url]
 
 
-def _get_consul_for_service(consul_url, consul_svc):
+def _get_consul_for_service(consul_url, consul_svc) -> consul.Consul:
     pu = urllib.parse.urlparse(consul_url)
     consul_port = "" if ":" not in pu.netloc else ":" + pu.netloc.split(":")[1]
     tmp = "{}://{}{}".format(pu.scheme, consul_svc['Address'], consul_port)
     return _get_consul_for_url(tmp)
 
 
-def _get_all_service_names():
+def _get_all_service_names() -> list:
     con = _get_consul_for_url(args.consul_url)
     return [key for key, value in con.catalog.services()[1].items()]
 
 
-def _get_all_service_tags():
+def _get_all_service_tags() -> list:
     con = _get_consul_for_url(args.consul_url)
     # gives us: { SVC_NAME: [SVC_TAG,...] }
     svcs = con.catalog.services()[1]
@@ -53,7 +53,7 @@ def _get_all_service_tags():
     return list(set(tags))
 
 
-def _get_all_services() -> list:
+def _get_all_services() -> [dict]:
     """
     Returns a list of consul service dicts
     :return: A list like [SVC1, ...]
@@ -68,7 +68,7 @@ def _get_all_services() -> list:
     return chk_svcs
 
 
-def _unregister(svc):
+def _unregister(svc) -> bool:
     """
     Deregisters a service from consul.
     :param service: The service dict of the service to be deregistered.
@@ -79,9 +79,10 @@ def _unregister(svc):
     status = "OK" if res else "FAIL"
     print("DEREGISTER_{:<7} CONSUL {:<40}    ID {}"
           .format(status, con.http.base_uri, svc['ServiceID']))
+    return res
 
 
-def _get_filtered_services():
+def _get_filtered_services() -> [dict]:
     def match(svc):
         for fname, fex in filter_dict.items():
             if fname not in svc or not fex.search(svc[fname]):
@@ -92,32 +93,31 @@ def _get_filtered_services():
         field, expr = fltr.split("=", maxsplit=1)
         filter_dict[field] = re.compile(expr)
     svcs = _get_all_services()
-    tmp = list(filter(match, svcs))
-    return tmp
+    return list(filter(match, svcs))
 
 
-def del_by_id():
+def del_by_id() -> None:
     svcs = _get_all_services()
     filtered = filter(lambda x: args.service_id == x['ServiceID'], svcs)
     for svc in filtered:
         _unregister(svc)
 
 
-def del_by_name():
+def del_by_name() -> None:
     svcs = _get_all_services()
     filtered = filter(lambda x: args.service_name == x['ServiceName'], svcs)
     for svc in filtered:
         _unregister(svc)
 
 
-def del_by_tag():
+def del_by_tag() -> None:
     svcs = _get_all_services()
     filtered = filter(lambda x: args.tag_name in x['ServiceTags'], svcs)
     for svc in filtered:
         _unregister(svc)
 
 
-def list_filtered():
+def list_filtered() -> None:
     svcs = sorted(_get_filtered_services(), key=lambda x: x['ServiceName'])
     if args.verbose:
         pprint(svcs)
@@ -126,13 +126,13 @@ def list_filtered():
             print(svc['ServiceName'])
 
 
-def del_filtered():
+def del_filtered() -> None:
     svcs = sorted(_get_filtered_services(), key=lambda x: x['ServiceName'])
     for svc in svcs:
         _unregister(svc)
 
 
-def list_services():
+def list_services() -> None:
     svcs = _get_all_service_names()
     if args.filter:
         fltr = re.compile(args.filter)
@@ -141,7 +141,7 @@ def list_services():
         print(svc)
 
 
-def list_tags():
+def list_tags() -> None:
     tags = _get_all_service_tags()
     if args.filter:
         fltr = re.compile(args.filter)
@@ -150,13 +150,13 @@ def list_tags():
         print(tag)
 
 
-def service_info():
+def service_info() -> None:
     svcs = _get_all_services()
     filtered = filter(lambda x: args.service_name == x['ServiceName'], svcs)
     pprint(list(filtered))
 
 
-def version():
+def version() -> None:
     print(VERSION)
 
 
